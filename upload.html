@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Media | CloudMedia</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>📸 CloudMedia</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="my-media.html">My Media</a>
+                <a href="upload.html" class="active btn-primary">Upload</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="upload-section">
+        <div class="container">
+            <div class="upload-header">
+                <h2>📤 Upload Media File</h2>
+                <p class="upload-subtitle">Share your images, videos, and audio with the world</p>
+            </div>
+            
+            <div class="upload-card">
+                <!-- Drag & Drop Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon-wrapper">
+                        <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                    </div>
+                    <h3 class="upload-title">Drag & drop your file here</h3>
+                    <p class="upload-or">or</p>
+                    <label for="fileInput" class="btn-upload-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Choose File
+                    </label>
+                    <input type="file" id="fileInput" accept="image/*,video/*,audio/*" hidden />
+                    <div class="file-types-info">
+                        <p class="file-types-title">Supported formats:</p>
+                        <div class="file-types-tags">
+                            <span class="file-type-tag">📷 JPG</span>
+                            <span class="file-type-tag">📷 PNG</span>
+                            <span class="file-type-tag">📷 GIF</span>
+                            <span class="file-type-tag">🎬 MP4</span>
+                            <span class="file-type-tag">🎬 MOV</span>
+                            <span class="file-type-tag">🎵 MP3</span>
+                            <span class="file-type-tag">🎵 WAV</span>
+                        </div>
+                        <p class="file-size-limit">Maximum file size: 100MB</p>
+                    </div>
+                </div>
+
+                <!-- File Preview -->
+                <div class="preview-area" id="previewArea" style="display: none;">
+                    <h3>File Preview</h3>
+                    <div class="preview-content" id="previewContent"></div>
+                    <button class="btn-text" onclick="clearFile()">Clear File</button>
+                </div>
+
+                <!-- Metadata Form -->
+                <form id="uploadForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="userInfo">Uploading as</label>
+                        <div class="user-info-display">
+                            <span id="userNameDisplay">Loading...</span>
+                            <button type="button" class="btn-text" onclick="authManager.changeUserName(); updateUserDisplay();">Change Nickname</button>
+                        </div>
+                        <input type="hidden" id="userId" />
+                        <small>💡 Your identity is saved locally. In production, Azure AD B2C will be used.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="3" placeholder="Describe this media file..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags">Tags</label>
+                        <input type="text" id="tags" placeholder="e.g. nature, landscape, sunset (comma separated)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="visibility">Visibility</label>
+                        <select id="visibility">
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                    </div>
+
+                    <!-- Upload Progress -->
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">Uploading... 0%</p>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="window.location.href='index.html'">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submitBtn">Upload</button>
+                    </div>
+                </form>
+
+                <!-- Success Message -->
+                <div class="success-message" id="successMessage" style="display: none;">
+                    <div class="success-icon">✅</div>
+                    <h3>Upload Successful!</h3>
+                    <p>Your media file has been successfully uploaded to the cloud</p>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="resetForm()">Upload Another</button>
+                        <button class="btn-primary" onclick="window.location.href='index.html'">View Media</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 CloudMedia Platform | Powered by Azure Cloud Services</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/upload.js"></script>
+    <script>
+        // 初始化用户信息显示
+        function updateUserDisplay() {
+            const userName = authManager.getUserName();
+            const userId = authManager.getUserId();
+            document.getElementById('userNameDisplay').textContent = `👤 ${userName}`;
+            document.getElementById('userId').value = userId;
+        }
+        
+        // 页面加载时更新显示
+        window.addEventListener('DOMContentLoaded', updateUserDisplay);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Media | CloudMedia</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>📸 CloudMedia</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="my-media.html" class="active">My Media</a>
+                <a href="upload.html" class="btn-primary">Upload</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="my-media-section">
+        <div class="container">
+            <div class="my-media-header">
+                <h2>My Media</h2>
+                <div class="user-profile-mini">
+                    <span class="user-avatar-mini">👤</span>
+                    <div>
+                        <strong id="userNameDisplay">Loading...</strong>
+                        <small id="userIdDisplay" style="display: block; color: #666;">Loading...</small>
+                    </div>
+                    <button class="btn-secondary btn-sm" onclick="authManager.changeUserName(); updateUserDisplay(); loadMyMedia();">Change Nickname</button>
+                </div>
+            </div>
+
+            <div id="myMediaGrid" class="media-grid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading your media...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 CloudMedia Platform | Powered by Azure Cloud Services</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // 更新用户显示
+        function updateUserDisplay() {
+            const userName = authManager.getUserName();
+            const userId = authManager.getUserId();
+            document.getElementById('userNameDisplay').textContent = userName;
+            document.getElementById('userIdDisplay').textContent = `ID: ${userId}`;
+        }
+        
+        async function loadMyMedia() {
+            const userId = authManager.getUserId();
+
+            const gridContainer = document.getElementById('myMediaGrid');
+            gridContainer.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            `;
+
+            try {
+                const mediaList = await getMediaByUser(userId);
+                
+                if (mediaList.length === 0) {
+                    gridContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>No media uploaded yet</p>
+                            <button class="btn-primary" onclick="window.location.href='upload.html'">Upload Now</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                gridContainer.innerHTML = mediaList.map(media => createMediaCard(media)).join('');
+            } catch (error) {
+                gridContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>❌ Failed to load: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function createMediaCard(media) {
+            let thumbnail = '';
+            if (media.media_type === 'image') {
+                thumbnail = `<img src="${escapeHtml(media.thumbnail_url || media.blob_url)}" alt="${escapeHtml(media.filename)}">`;
+            } else if (media.media_type === 'video') {
+                thumbnail = `<div class="video-thumbnail">🎬 Video</div>`;
+            } else if (media.media_type === 'audio') {
+                thumbnail = `<div class="audio-thumbnail">🎵 Audio</div>`;
+            }
+
+            return `
+                <div class="media-card">
+                    <div class="media-thumbnail" onclick="window.location.href='detail.html?id=${media.media_id}'">
+                        ${thumbnail}
+                    </div>
+                    <div class="media-info">
+                        <h3>${escapeHtml(media.filename)}</h3>
+                        <p class="media-description">${escapeHtml(media.description || 'No description')}</p>
+                        <div class="media-stats">
+                            <span>👁️ ${media.views_count || 0}</span>
+                            <span>❤️ ${media.likes_count || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动加载当前用户的媒体
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUserDisplay();
+            loadMyMedia();
+        });
+    </script>
+</body>
+</html>
+
